@@ -123,28 +123,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
 .fta{resize:vertical;min-height:72px;line-height:1.6;}
 .fdiv{border:none;border-top:1px solid var(--bd);margin:20px 0;}
 
-/* ── 캡쳐 분석 박스 ── */
-.cap-box{background:linear-gradient(135deg,rgba(61,220,132,.06),rgba(77,159,255,.04));
-  border:1px solid rgba(61,220,132,.25);border-radius:12px;padding:16px;margin-bottom:22px;}
-.cap-title{font-size:14px;font-weight:700;color:var(--gn);margin-bottom:4px;}
-.cap-desc{font-size:12px;color:var(--tm);margin-bottom:12px;}
-.cap-drop{border:2px dashed rgba(61,220,132,.3);border-radius:10px;padding:20px;text-align:center;
-  cursor:pointer;transition:all .15s;color:var(--ts);font-size:13px;font-weight:600;}
-.cap-drop:hover{border-color:var(--gn);color:var(--gn);background:rgba(61,220,132,.04);}
-.cap-drop-icon{font-size:28px;margin-bottom:8px;}
-.cap-preview-wrap{margin-top:12px;position:relative;display:flex;gap:10px;align-items:flex-start;}
-.cap-preview-img{width:80px;height:130px;object-fit:cover;border-radius:8px;border:1px solid var(--bd);flex-shrink:0;}
-.cap-reselect{background:var(--sf3);border:1px solid var(--bd2);color:var(--ts);font-family:inherit;
-  font-size:11px;padding:5px 10px;border-radius:6px;cursor:pointer;transition:all .15s;}
-.cap-reselect:hover{border-color:var(--gn);color:var(--gn);}
-.cap-status{margin-top:10px;font-size:12px;min-height:18px;display:flex;align-items:center;gap:7px;}
-.cap-status.loading{color:var(--bl);}
-.cap-status.ok{color:var(--gn);}
-.cap-status.err{color:var(--ac);}
-.spinner{width:13px;height:13px;border:2px solid rgba(77,159,255,.2);border-top-color:var(--bl);
-  border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
-@keyframes spin{to{transform:rotate(360deg);}}
-
 /* 카테고리 */
 .cat-btns{display:flex;gap:8px;flex-wrap:wrap;}
 .catb{background:var(--sf2);border:2px solid var(--bd);color:var(--ts);font-family:inherit;
@@ -296,23 +274,6 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
 <div class="ov" id="rov" onclick="closeM('rov')">
   <div class="modal" onclick="event.stopPropagation()">
     <div class="mhdr"><h2>맛집 등록</h2><button class="mclose" onclick="closeM('rov')">✕</button></div>
-
-    <!-- ── 캡쳐 분석 ── -->
-    <div class="cap-box" id="capBox">
-      <div class="cap-title">📷 네이버지도 캡쳐로 자동완성</div>
-      <div class="cap-desc">네이버지도 가게 화면을 캡쳐해서 올리면 자동으로 채워드려요</div>
-      <div class="cap-drop" id="capDrop" onclick="document.getElementById('capIn').click()">
-        <div class="cap-drop-icon">📱</div>
-        <div>캡쳐 이미지 선택</div>
-        <div style="font-size:11px;margin-top:4px;color:var(--tm)">네이버지도 가게 정보 화면 캡쳐</div>
-      </div>
-      <input type="file" id="capIn" accept="image/*" style="display:none" onchange="analyzeCapture(event)">
-      <div class="cap-preview-wrap" id="capPreviewWrap" style="display:none">
-        <img id="capPreview" class="cap-preview-img">
-        <button class="cap-reselect" onclick="document.getElementById('capIn').click()">다시 선택</button>
-      </div>
-      <div class="cap-status" id="capStatus"></div>
-    </div>
 
     <!-- 카테고리 -->
     <div class="fsec">
@@ -527,118 +488,6 @@ async function delR(id){
   }
 }
 
-// ── 캡쳐 이미지 분석 ──────────────────────────────
-async function analyzeCapture(e){
-  const file=e.target.files[0]; if(!file)return;
-
-  // 미리보기
-  const reader=new FileReader();
-  reader.onload=ev=>{
-    document.getElementById('capPreview').src=ev.target.result;
-    document.getElementById('capPreviewWrap').style.display='flex';
-    document.getElementById('capDrop').style.display='none';
-  };
-  reader.readAsDataURL(file);
-
-  const statusEl=document.getElementById('capStatus');
-  statusEl.className='cap-status loading';
-  statusEl.innerHTML='<div class="spinner"></div> 이미지 분석 중...';
-
-  // base64 변환
-  const b64=await new Promise(res=>{
-    const r=new FileReader();
-    r.onload=ev=>res(ev.target.result.split(',')[1]);
-    r.readAsDataURL(file);
-  });
-
-  const prompt=`이 이미지는 네이버지도 앱의 식당 정보 화면 캡쳐입니다.
-이미지에서 보이는 정보만 정확하게 추출해주세요. 보이지 않는 정보는 절대 추측하지 마세요.
-
-반드시 아래 JSON 형식만 반환 (다른 텍스트 없이):
-{
-  "name": "식당명 (보이면)",
-  "category": "korean|chinese|japanese|western|cafe|etc 중 하나 (메뉴/업종 보고 판단)",
-  "address": "주소 (보이면, 없으면 빈 문자열)",
-  "phone": "전화번호 (보이면, 없으면 빈 문자열)",
-  "hours": {
-    "mon": "HH:MM-HH:MM 또는 휴무 또는 빈문자열(모름)",
-    "tue": "HH:MM-HH:MM 또는 휴무 또는 빈문자열",
-    "wed": "HH:MM-HH:MM 또는 휴무 또는 빈문자열",
-    "thu": "HH:MM-HH:MM 또는 휴무 또는 빈문자열",
-    "fri": "HH:MM-HH:MM 또는 휴무 또는 빈문자열",
-    "sat": "HH:MM-HH:MM 또는 휴무 또는 빈문자열",
-    "sun": "HH:MM-HH:MM 또는 휴무 또는 빈문자열"
-  },
-  "memo": "대표메뉴나 특징 (메뉴판이 보이면 주요 메뉴 2~3개 포함, 없으면 빈 문자열)",
-  "extracted": ["실제로 추출한 필드명들 목록"]
-}`;
-
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:1000,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:file.type,data:b64}},
-            {type:'text',text:prompt}
-          ]
-        }]
-      })
-    });
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const data=await res.json();
-    const text=data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
-    const m=text.match(/\{[\s\S]*\}/);
-    if(!m)throw new Error('분석 결과를 읽지 못했어요');
-    const info=JSON.parse(m[0]);
-
-    // 폼 채우기
-    let filled=[];
-    if(info.name){document.getElementById('rName').value=info.name;filled.push('식당명');}
-    if(info.address){document.getElementById('rAddr').value=info.address;filled.push('주소');}
-    if(info.phone){
-      document.getElementById('rPhone').value=info.phone;
-      fmtPhone(document.getElementById('rPhone'));
-      filled.push('연락처');
-    }
-    if(info.memo){document.getElementById('rMemo').value=info.memo;filled.push('메모');}
-    if(info.category){
-      const btn=document.querySelector(`.catb[data-cat="${info.category}"]`);
-      if(btn){selCat(btn);filled.push('카테고리');}
-    }
-
-    // 영업시간 — 값 있는 요일만 채움
-    if(info.hours){
-      let hourFilled=false;
-      DK.forEach(k=>{
-        const t=info.hours[k];
-        if(!t)return;
-        if(t==='휴무'){setOff(k,true);hourFilled=true;}
-        else if(t.includes('-')){
-          const pts=t.split('-');
-          if(pts.length===2){setOff(k,false);setTime(k,pts[0],pts[1]);hourFilled=true;}
-        }
-      });
-      if(hourFilled)filled.push('영업시간');
-    }
-
-    if(filled.length){
-      statusEl.className='cap-status ok';
-      statusEl.innerHTML=`✅ 자동완성 완료: ${filled.join(', ')} — 나머지는 직접 입력해주세요`;
-    } else {
-      statusEl.className='cap-status err';
-      statusEl.innerHTML='❌ 이미지에서 정보를 찾지 못했어요. 직접 입력해주세요';
-    }
-  }catch(err){
-    statusEl.className='cap-status err';
-    statusEl.innerHTML=`❌ 분석 실패: ${err.message}`;
-    console.error(err);
-  }
-}
 
 // ── CATEGORY ──────────────────────────────────────
 function selCat(el){
@@ -832,12 +681,6 @@ function openReg(){
   document.querySelector('.catb[data-cat="korean"]').classList.add('on');
   selCatVal='korean';
   resetHours();
-  // 캡쳐 분석 초기화
-  document.getElementById('capIn').value='';
-  document.getElementById('capDrop').style.display='';
-  document.getElementById('capPreviewWrap').style.display='none';
-  document.getElementById('capStatus').className='cap-status';
-  document.getElementById('capStatus').innerHTML='';
   openM('rov');
 }
 
