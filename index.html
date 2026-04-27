@@ -485,7 +485,7 @@ async function delR(id){
   if(!confirm('삭제할까요?'))return;
   showLoading(true);
   try{
-    const res=await fetch(`${API}?action=delete&id=${id}`);
+    const res=await fetch(API, {method:'POST', body:new URLSearchParams({action:'delete', id})});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     rests=rests.filter(r=>r.id!==id);
@@ -669,10 +669,27 @@ function resetHours(){
 // ── PHOTO ─────────────────────────────────────────
 function addPhotos(e){
   Array.from(e.target.files).slice(0,6-photos.length).forEach(f=>{
-    const r=new FileReader();
-    r.onload=ev=>{photos.push(ev.target.result);renderPrev();};
-    r.readAsDataURL(f);
+    compressImg(f, dataUrl=>{photos.push(dataUrl);renderPrev();});
   });
+}
+
+function compressImg(file, cb){
+  const img=new Image();
+  const url=URL.createObjectURL(file);
+  img.onload=()=>{
+    const MAX=800;
+    let w=img.width, h=img.height;
+    if(w>MAX||h>MAX){
+      if(w>h){h=Math.round(h*MAX/w);w=MAX;}
+      else{w=Math.round(w*MAX/h);h=MAX;}
+    }
+    const canvas=document.createElement('canvas');
+    canvas.width=w; canvas.height=h;
+    canvas.getContext('2d').drawImage(img,0,0,w,h);
+    cb(canvas.toDataURL('image/jpeg', 0.72));
+    URL.revokeObjectURL(url);
+  };
+  img.src=url;
 }
 function renderPrev(){
   document.getElementById('pprev').innerHTML=photos.map((d,i)=>`
@@ -733,15 +750,15 @@ async function submitEdit(){
   sbtn.disabled=true; sbtn.textContent='수정 중...';
   showLoading(true);
   try{
-    const params=new URLSearchParams({
+    const body={
       action:'update', id:editingId, name, category:selCatVal, address:addr,
       addrDetail:document.getElementById('rAddrDetail').value.trim(),
       phone:document.getElementById('rPhone').value.trim(),
       ...hours,
       photos:JSON.stringify(photos),
       memo:document.getElementById('rMemo').value.trim()
-    });
-    const res=await fetch(API+'?'+params.toString());
+    };
+    const res=await fetch(API, {method:'POST',body:new URLSearchParams(body)});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     // 로컬 업데이트
@@ -792,15 +809,15 @@ async function submitReg(){
   sbtn.disabled=true; sbtn.textContent='등록 중...';
   showLoading(true);
   try{
-    const params=new URLSearchParams({
+    const body={
       action:'add', name, category:selCatVal, address:addr,
       addrDetail:document.getElementById('rAddrDetail').value.trim(),
       phone:document.getElementById('rPhone').value.trim(),
       ...hours,
       photos:JSON.stringify(photos),
       memo:document.getElementById('rMemo').value.trim()
-    });
-    const res=await fetch(API+'?'+params.toString());
+    };
+    const res=await fetch(API, {method:'POST',body:new URLSearchParams(body)});
     const data=await res.json();
     if(data.error)throw new Error(data.error);
     // 로컬에도 추가해서 즉시 반영
