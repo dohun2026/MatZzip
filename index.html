@@ -151,68 +151,55 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
   border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;transition:opacity .15s;margin-top:8px;}
 .sbtn:hover{opacity:.9;}
 
-/* ── 영업시간 공통 ── */
+/* ── 영업시간 새 UI ── */
 .ht-wrap{background:var(--sf2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;}
-.ht-presets{padding:12px 14px;border-bottom:1px solid var(--bd);display:flex;flex-wrap:wrap;gap:6px;}
-.hpb{background:var(--sf3);border:1px solid var(--bd2);color:var(--ts);font-family:inherit;
-  font-size:11px;font-weight:700;padding:5px 11px;border-radius:20px;cursor:pointer;transition:all .15s;}
-.hpb:hover{border-color:var(--ac2);color:var(--ac2);}
-.hpb.special{border-color:rgba(255,92,53,.3);color:var(--ac);}
-.hpb.special:hover{background:rgba(255,92,53,.1);}
 
-/* ── PC: 가로 시간표 (680px 이상) ── */
-@media(min-width:680px){
-  .ht-grid{display:grid;grid-template-columns:36px repeat(7,minmax(0,1fr));}
-  .ht-hdr{background:var(--sf3);}
-  .ht-cell{padding:6px 2px;text-align:center;font-size:10px;font-weight:700;color:var(--tm);border-bottom:1px solid var(--bd);}
-  .ht-cell.day-hdr{color:var(--ts);}
-  .ht-cell.day-hdr.sat{color:#7ab4ff;}
-  .ht-cell.day-hdr.sun{color:#ff8a70;}
-  .ht-cell.today-hdr{color:var(--ac2);}
-  .ht-label{padding:8px 4px;display:flex;align-items:center;justify-content:flex-end;
-    font-size:10px;color:var(--tm);border-bottom:1px solid var(--bd);}
-  .ht-input-cell{padding:3px 2px;border-bottom:1px solid var(--bd);border-left:1px solid var(--bd);
-    display:flex;align-items:center;justify-content:center;}
-  .ht-time{width:100%;background:var(--sf3);border:1px solid transparent;color:var(--tx);
-    font-family:inherit;font-size:10px;padding:5px 1px;border-radius:5px;
-    outline:none;text-align:center;cursor:pointer;transition:all .15s;}
-  .ht-time:focus{border-color:var(--ac);background:var(--sf);}
-  .ht-time:disabled{color:var(--tm);background:transparent;cursor:default;}
-  .ht-off-cell{padding:3px 2px;border-bottom:1px solid var(--bd);border-left:1px solid var(--bd);
-    display:flex;align-items:center;justify-content:center;}
-  .ht-off-btn{width:100%;background:transparent;border:1px solid var(--bd2);color:var(--tm);
-    font-family:inherit;font-size:10px;font-weight:700;padding:4px 1px;border-radius:5px;
-    cursor:pointer;transition:all .15s;white-space:nowrap;}
-  .ht-off-btn:hover{border-color:var(--ac);color:var(--ac);}
-  .ht-off-btn.active{background:rgba(255,92,53,.12);border-color:var(--ac);color:var(--ac);}
-  .ht-input-cell.today,.ht-off-cell.today{background:rgba(255,184,0,.04);}
-  /* 모바일 카드 숨김 */
-  .ht-cards{display:none;}
-}
+/* 시간 입력 + 요일 선택 패널 */
+.ht-panel{padding:14px;}
+.ht-panel-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.ht-time-input{background:var(--sf3);border:1px solid var(--bd2);color:var(--tx);
+  font-family:inherit;font-size:15px;font-weight:700;padding:9px 12px;border-radius:9px;
+  outline:none;cursor:pointer;transition:border-color .15s;width:110px;text-align:center;}
+.ht-time-input:focus{border-color:var(--ac);}
+.ht-sep{color:var(--tm);font-size:14px;font-weight:700;}
+.ht-apply-btn{background:var(--ac);color:#fff;border:none;font-family:inherit;font-size:13px;
+  font-weight:700;padding:9px 18px;border-radius:9px;cursor:pointer;transition:opacity .15s;white-space:nowrap;}
+.ht-apply-btn:hover{opacity:.85;}
+.ht-off-apply-btn{background:rgba(255,92,53,.1);border:1px solid rgba(255,92,53,.3);color:var(--ac);
+  font-family:inherit;font-size:13px;font-weight:700;padding:9px 14px;border-radius:9px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ht-off-apply-btn:hover{background:rgba(255,92,53,.2);}
 
-/* ── 모바일: 세로 카드형 (680px 미만) ── */
-@media(max-width:679px){
-  .ht-grid{display:none;}
-  .ht-cards{display:flex;flex-direction:column;gap:1px;}
-  .ht-card{display:grid;grid-template-columns:36px 1fr 1fr 64px;align-items:center;gap:6px;
-    padding:10px 12px;border-bottom:1px solid var(--bd);transition:opacity .2s;}
-  .ht-card:last-child{border-bottom:none;}
-  .ht-card.off-day{opacity:.45;}
-  .ht-card-day{font-size:13px;font-weight:700;color:var(--ts);text-align:center;}
-  .ht-card-day.sat{color:#7ab4ff;}
-  .ht-card-day.sun{color:#ff8a70;}
-  .ht-card-day.today{color:var(--ac2);}
-  .ht-card-time{background:var(--sf3);border:1px solid var(--bd2);color:var(--tx);
-    font-family:inherit;font-size:13px;padding:7px 8px;border-radius:8px;
-    outline:none;width:100%;text-align:center;cursor:pointer;transition:border-color .15s;}
-  .ht-card-time:focus{border-color:var(--ac);}
-  .ht-card-time:disabled{color:var(--tm);cursor:default;}
-  .ht-card-off{background:transparent;border:1px solid var(--bd2);color:var(--tm);
-    font-family:inherit;font-size:12px;font-weight:700;padding:7px 6px;border-radius:8px;
-    cursor:pointer;transition:all .15s;width:100%;text-align:center;}
-  .ht-card-off:hover{border-color:var(--ac);color:var(--ac);}
-  .ht-card-off.active{background:rgba(255,92,53,.12);border-color:var(--ac);color:var(--ac);}
-}
+/* 요일 선택 버튼 */
+.ht-day-sel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px;}
+.ht-day-btn{background:var(--sf3);border:2px solid var(--bd2);color:var(--ts);font-family:inherit;
+  font-size:13px;font-weight:700;width:40px;height:40px;border-radius:10px;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.ht-day-btn:hover{border-color:var(--ac2);}
+.ht-day-btn.sel{background:rgba(77,159,255,.15);border-color:var(--bl);color:var(--bl);}
+.ht-day-btn.sat{color:#7ab4ff;}
+.ht-day-btn.sun{color:#ff8a70;}
+.ht-day-btn.sel.sat{background:rgba(122,180,255,.15);border-color:#7ab4ff;}
+.ht-day-btn.sel.sun{background:rgba(255,138,112,.15);border-color:#ff8a70;}
+.ht-sel-hint{font-size:11px;color:var(--tm);margin-bottom:10px;}
+
+/* 요일별 결과 요약 */
+.ht-summary{border-top:1px solid var(--bd);}
+.ht-sum-row{display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:8px;
+  padding:9px 14px;border-bottom:1px solid var(--bd);transition:opacity .2s;}
+.ht-sum-row:last-child{border-bottom:none;}
+.ht-sum-row.off{opacity:.45;}
+.ht-sum-day{font-size:13px;font-weight:700;color:var(--ts);}
+.ht-sum-day.sat{color:#7ab4ff;}
+.ht-sum-day.sun{color:#ff8a70;}
+.ht-sum-day.today{color:var(--ac2);}
+.ht-sum-time{font-size:13px;color:var(--ts);}
+.ht-sum-time.off-txt{color:var(--tm);font-style:italic;}
+.ht-sum-off{background:transparent;border:1px solid var(--bd2);color:var(--tm);
+  font-family:inherit;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;
+  cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ht-sum-off:hover{border-color:var(--ac);color:var(--ac);}
+.ht-sum-off.active{background:rgba(255,92,53,.1);border-color:var(--ac);color:var(--ac);}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
   background:var(--sf2);border:1px solid var(--bd);color:var(--tx);padding:12px 20px;
@@ -318,26 +305,30 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
 
     <hr class="fdiv">
 
-    <!-- ── 영업시간 시간표 ── -->
+    <!-- ── 영업시간 새 UI ── -->
     <div class="fsec">
       <label class="flb">영업시간</label>
       <div class="ht-wrap">
-        <!-- 프리셋 -->
-        <div class="ht-presets">
-          <button class="hpb" onclick="apAll('09:00','22:00')">09~22시</button>
-          <button class="hpb" onclick="apAll('10:00','21:00')">10~21시</button>
-          <button class="hpb" onclick="apAll('11:00','21:00')">11~21시</button>
-          <button class="hpb" onclick="apAll('11:00','22:00')">11~22시</button>
-          <button class="hpb" onclick="apAll('11:30','20:30')">11:30~20:30</button>
-          <button class="hpb" onclick="apAll('09:00','18:00')">09~18시</button>
-          <button class="hpb special" onclick="apOffWeekend(false)">주말 휴무</button>
-          <button class="hpb special" onclick="apOffWeekend(true)">일요일만 휴무</button>
-          <button class="hpb special" onclick="apOffWed()">수요일 휴무</button>
+        <!-- 시간 입력 + 요일 선택 패널 -->
+        <div class="ht-panel">
+          <div class="ht-sel-hint">적용할 요일을 선택하세요 (복수 선택 가능)</div>
+          <div class="ht-day-sel" id="htDaySel"></div>
+          <div style="display:flex;gap:6px;margin:10px 0 4px;flex-wrap:wrap;align-items:center">
+            <span style="font-size:11px;color:var(--tm);font-weight:600">빠른선택:</span>
+            <button class="ht-off-apply-btn" style="font-size:11px;padding:5px 10px" onclick="quickSelDays([0,1,2,3,4])">평일</button>
+            <button class="ht-off-apply-btn" style="font-size:11px;padding:5px 10px" onclick="quickSelDays([5,6])">주말</button>
+            <button class="ht-off-apply-btn" style="font-size:11px;padding:5px 10px" onclick="quickSelDays([0,1,2,3,4,5,6])">전체</button>
+          </div>
+          <div class="ht-panel-row" style="margin-top:10px">
+            <input type="time" class="ht-time-input" id="htPanelOpen" value="11:00">
+            <span class="ht-sep">~</span>
+            <input type="time" class="ht-time-input" id="htPanelClose" value="21:00">
+            <button class="ht-apply-btn" onclick="applyToSel()">✓ 적용</button>
+            <button class="ht-off-apply-btn" onclick="applyOffToSel()">휴무 설정</button>
+          </div>
         </div>
-        <!-- PC: 가로 시간표 -->
-        <div class="ht-grid" id="htGrid"></div>
-        <!-- 모바일: 세로 카드 -->
-        <div class="ht-cards" id="htCards"></div>
+        <!-- 요일별 결과 요약 -->
+        <div class="ht-summary" id="htSummary"></div>
       </div>
     </div>
 
@@ -525,145 +516,103 @@ function fmtPhone(el){
   }
 }
 
-// ── 영업시간 시간표 ────────────────────────────────
-const todayIdx=(new Date().getDay()+6)%7; // 월=0
+// ── 영업시간 새 UI ────────────────────────────────
+const todayIdx=(new Date().getDay()+6)%7;
+
+// 요일별 시간 데이터 저장소
+let htData = {}; // {mon: {open:'11:00', close:'21:00', off:false}, ...}
+let selDays = new Set(); // 현재 선택된 요일 인덱스
 
 function buildHtGrid(){
-  /* ── PC 그리드 ── */
-  const el=document.getElementById('htGrid');
-  if(el){
-    const dayHdrs=DAYS.map((d,i)=>{
-      let cls='ht-cell day-hdr';
-      if(i===5)cls+=' sat'; if(i===6)cls+=' sun'; if(i===todayIdx)cls+=' today-hdr';
-      return`<div class="${cls}">${d}</div>`;
-    }).join('');
-    const openCells=DK.map((k,i)=>`
-      <div class="ht-input-cell${i===todayIdx?' today':''}" id="htoc_${k}">
-        <input type="time" class="ht-time" id="ho_${k}" value="11:00">
-      </div>`).join('');
-    const closeCells=DK.map((k,i)=>`
-      <div class="ht-input-cell${i===todayIdx?' today':''}" id="htcc_${k}">
-        <input type="time" class="ht-time" id="hc_${k}" value="21:00">
-      </div>`).join('');
-    const offCells=DK.map((k,i)=>`
-      <div class="ht-off-cell${i===todayIdx?' today':''}" id="htoff_${k}">
-        <button class="ht-off-btn" id="hoff_${k}" onclick="togOff('${k}')">휴무</button>
-      </div>`).join('');
-    el.innerHTML=
-      `<div class="ht-cell ht-hdr"></div>${dayHdrs}`+
-      `<div class="ht-label">시작</div>${openCells}`+
-      `<div class="ht-label">종료</div>${closeCells}`+
-      `<div class="ht-label" style="font-size:10px">휴무</div>${offCells}`;
-  }
-
-  /* ── 모바일 카드 ── */
-  const mc=document.getElementById('htCards');
-  if(mc){
-    mc.innerHTML=DAYS.map((d,i)=>{
-      const k=DK[i];
-      let dayCls='ht-card-day';
-      if(i===5)dayCls+=' sat'; if(i===6)dayCls+=' sun'; if(i===todayIdx)dayCls+=' today';
-      return`<div class="ht-card" id="mc_${k}">
-        <span class="${dayCls}">${d}</span>
-        <input type="time" class="ht-card-time" id="mho_${k}" value="11:00">
-        <input type="time" class="ht-card-time" id="mhc_${k}" value="21:00">
-        <button class="ht-card-off" id="moff_${k}" onclick="togOff('${k}')">휴무</button>
-      </div>`;
+  // 초기 데이터 세팅
+  DK.forEach(k=>{ htData[k]={open:'11:00',close:'21:00',off:false}; });
+  // 요일 선택 버튼 생성
+  const sel=document.getElementById('htDaySel');
+  if(sel){
+    sel.innerHTML=DAYS.map((d,i)=>{
+      let cls='ht-day-btn';
+      if(i===5)cls+=' sat'; if(i===6)cls+=' sun';
+      return`<button class="${cls}" id="htdb_${i}" onclick="toggleDaySel(${i})">${d}</button>`;
     }).join('');
   }
+  renderSummary();
 }
 
-function togOff(k){
-  // PC
-  const btn=document.getElementById(`hoff_${k}`);
-  if(btn){
-    const isOff=btn.classList.toggle('active');
-    const ho=document.getElementById(`ho_${k}`);
-    const hc=document.getElementById(`hc_${k}`);
-    if(ho)ho.disabled=isOff; if(hc)hc.disabled=isOff;
-  }
-  // 모바일
-  const mbtn=document.getElementById(`moff_${k}`);
-  if(mbtn){
-    const isOff2=mbtn.classList.toggle('active');
-    const mho=document.getElementById(`mho_${k}`);
-    const mhc=document.getElementById(`mhc_${k}`);
-    if(mho)mho.disabled=isOff2; if(mhc)mhc.disabled=isOff2;
-    const card=document.getElementById(`mc_${k}`);
-    if(card)card.classList.toggle('off-day',isOff2);
-  }
+function toggleDaySel(i){
+  if(selDays.has(i)) selDays.delete(i);
+  else selDays.add(i);
+  // 버튼 스타일 업데이트
+  DAYS.forEach((_,idx)=>{
+    const btn=document.getElementById(`htdb_${idx}`);
+    if(!btn)return;
+    if(selDays.has(idx)) btn.classList.add('sel');
+    else btn.classList.remove('sel');
+  });
 }
 
-function setOff(k,off){
-  // PC
-  const btn=document.getElementById(`hoff_${k}`);
-  if(btn){
-    if(off)btn.classList.add('active'); else btn.classList.remove('active');
-    const ho=document.getElementById(`ho_${k}`);
-    const hc=document.getElementById(`hc_${k}`);
-    if(ho)ho.disabled=off; if(hc)hc.disabled=off;
-  }
-  // 모바일
-  const mbtn=document.getElementById(`moff_${k}`);
-  if(mbtn){
-    if(off)mbtn.classList.add('active'); else mbtn.classList.remove('active');
-    const mho=document.getElementById(`mho_${k}`);
-    const mhc=document.getElementById(`mhc_${k}`);
-    if(mho)mho.disabled=off; if(mhc)mhc.disabled=off;
-    const card=document.getElementById(`mc_${k}`);
-    if(card)card.classList.toggle('off-day',off);
-  }
+function quickSelDays(idxArr){
+  selDays=new Set(idxArr);
+  DAYS.forEach((_,i)=>{
+    const btn=document.getElementById(`htdb_${i}`);
+    if(btn){ if(selDays.has(i))btn.classList.add('sel'); else btn.classList.remove('sel'); }
+  });
 }
 
-function setTime(k,o,c){
-  // PC
-  const ho=document.getElementById(`ho_${k}`);
-  const hc=document.getElementById(`hc_${k}`);
-  if(ho)ho.value=o; if(hc)hc.value=c;
-  // 모바일
-  const mho=document.getElementById(`mho_${k}`);
-  const mhc=document.getElementById(`mhc_${k}`);
-  if(mho)mho.value=o; if(mhc)mhc.value=c;
+function applyToSel(){
+  if(selDays.size===0){toast('요일을 먼저 선택해주세요','err');return;}
+  const o=document.getElementById('htPanelOpen').value;
+  const c=document.getElementById('htPanelClose').value;
+  selDays.forEach(i=>{ htData[DK[i]]={open:o,close:c,off:false}; });
+  renderSummary();
+  toast(`${selDays.size}개 요일 적용 완료`,'ok');
 }
 
-function apAll(o,c){
-  DK.forEach(k=>{setOff(k,false);setTime(k,o,c);});
-  toast('전체 요일 적용','ok');
+function applyOffToSel(){
+  if(selDays.size===0){toast('요일을 먼저 선택해주세요','err');return;}
+  selDays.forEach(i=>{ htData[DK[i]].off=true; });
+  renderSummary();
+  toast(`${selDays.size}개 요일 휴무 설정`,'ok');
 }
 
-function apOffWeekend(sunOnly){
-  apAll('11:00','21:00');
-  const targets=sunOnly?['sun']:['sat','sun'];
-  targets.forEach(k=>setOff(k,true));
-  toast(sunOnly?'일요일 휴무 설정':'주말 휴무 설정','ok');
+function togSumOff(k){
+  htData[k].off=!htData[k].off;
+  renderSummary();
 }
 
-function apOffWed(){
-  apAll('11:00','21:00');
-  setOff('wed',true);
-  toast('수요일 휴무 설정','ok');
+function renderSummary(){
+  const el=document.getElementById('htSummary'); if(!el)return;
+  el.innerHTML=DAYS.map((d,i)=>{
+    const k=DK[i]; const v=htData[k]||{open:'11:00',close:'21:00',off:false};
+    let dayCls='ht-sum-day'; if(i===5)dayCls+=' sat'; if(i===6)dayCls+=' sun'; if(i===todayIdx)dayCls+=' today';
+    const timeStr=v.off?'휴무':`${v.open} ~ ${v.close}`;
+    return`<div class="ht-sum-row${v.off?' off':''}">
+      <span class="${dayCls}">${d}요일</span>
+      <span class="ht-sum-time${v.off?' off-txt':''}">${timeStr}</span>
+      <button class="ht-sum-off${v.off?' active':''}" onclick="togSumOff('${k}')">${v.off?'영업':'휴무'}</button>
+    </div>`;
+  }).join('');
 }
+
+function setOff(k,off){ htData[k].off=off; renderSummary(); }
+function setTime(k,o,c){ htData[k].open=o; htData[k].close=c; htData[k].off=false; renderSummary(); }
 
 function getHours(){
   const h={};
   DK.forEach(k=>{
-    // PC가 보이면 PC값, 모바일이 보이면 모바일값 우선
-    const pcOff=document.getElementById(`hoff_${k}`);
-    const mOff=document.getElementById(`moff_${k}`);
-    const isMobile=window.innerWidth<560;
-    if(isMobile&&mOff){
-      const off=mOff.classList.contains('active');
-      h[k]=off?'휴무':`${document.getElementById(`mho_${k}`).value}-${document.getElementById(`mhc_${k}`).value}`;
-    } else if(pcOff){
-      const off=pcOff.classList.contains('active');
-      h[k]=off?'휴무':`${document.getElementById(`ho_${k}`).value}-${document.getElementById(`hc_${k}`).value}`;
-    }
+    const v=htData[k]||{open:'11:00',close:'21:00',off:false};
+    h[k]=v.off?'휴무':`${v.open}-${v.close}`;
   });
   return h;
 }
 
 function resetHours(){
-  DK.forEach(k=>{setOff(k,false);setTime(k,'11:00','21:00');});
+  DK.forEach(k=>{ htData[k]={open:'11:00',close:'21:00',off:false}; });
+  selDays=new Set();
+  DAYS.forEach((_,i)=>{
+    const btn=document.getElementById(`htdb_${i}`);
+    if(btn)btn.classList.remove('sel');
+  });
+  renderSummary();
 }
 
 // ── PHOTO ─────────────────────────────────────────
