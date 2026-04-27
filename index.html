@@ -58,6 +58,27 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
   padding:6px 12px;border-radius:20px;cursor:pointer;transition:all .15s;white-space:nowrap;}
 .ftag.on{background:var(--ac);border-color:var(--ac);color:#fff;}
 
+/* ── 위치 검색 바 ── */
+.loc-bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.loc-search-wrap{flex:1;min-width:200px;position:relative;}
+.loc-search-wrap input{width:100%;background:var(--sf);border:1px solid var(--bd);color:var(--tx);
+  font-family:inherit;font-size:14px;padding:10px 14px 10px 36px;border-radius:10px;outline:none;transition:border-color .15s;}
+.loc-search-wrap input:focus{border-color:var(--bl);}
+.loc-search-wrap input::placeholder{color:var(--tm);}
+.loc-si{position:absolute;left:11px;top:50%;transform:translateY(-50%);pointer-events:none;font-size:16px;}
+.loc-gps-btn{background:var(--sf);border:1px solid var(--bd);color:var(--ts);font-family:inherit;
+  font-size:13px;font-weight:600;padding:10px 14px;border-radius:10px;cursor:pointer;
+  transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;}
+.loc-gps-btn:hover{border-color:var(--bl);color:var(--bl);}
+.loc-gps-btn.active{background:rgba(77,159,255,.1);border-color:var(--bl);color:var(--bl);}
+.radius-sel{background:var(--sf);border:1px solid var(--bd);color:var(--tx);font-family:inherit;
+  font-size:13px;padding:10px 12px;border-radius:10px;outline:none;cursor:pointer;}
+.loc-status{font-size:12px;color:var(--tm);padding:6px 12px;background:var(--sf);
+  border:1px solid var(--bd);border-radius:8px;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+.loc-status.active{color:var(--bl);border-color:rgba(77,159,255,.3);background:rgba(77,159,255,.06);}
+.loc-status.gps{color:var(--gn);border-color:rgba(61,220,132,.3);background:rgba(61,220,132,.06);}
+.cdist{font-family:'Space Mono',monospace;font-size:12px;color:var(--ac2);font-weight:700;margin-top:auto;}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
 .card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;
   cursor:pointer;transition:border-color .2s,transform .15s;display:flex;flex-direction:column;}
@@ -213,6 +234,7 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px;}
 </style>
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=5f5fdbd70b076000d1d9626dc44d391f&libraries=services"></script>
 </head>
 <body>
 
@@ -239,6 +261,24 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans KR',sans-serif;
     <button class="nbtn ghost" onclick="goSplash()">모드 변경</button>
   </nav>
   <div class="main">
+    <!-- 위치 검색 바 -->
+    <div class="loc-bar">
+      <div class="loc-search-wrap">
+        <span class="loc-si">📍</span>
+        <input type="text" id="locSearchInput" placeholder="목적지 주소 검색 (예: 원주시 흥업면)" onkeydown="if(event.key==='Enter')searchLocation()">
+      </div>
+      <button class="loc-gps-btn" id="gpsBtn" onclick="toggleGPS()">🛰️ 내 위치</button>
+      <select class="radius-sel" id="radiusSel" onchange="render()">
+        <option value="0">거리 전체</option>
+        <option value="1">1km</option>
+        <option value="3">3km</option>
+        <option value="5">5km</option>
+        <option value="10">10km</option>
+        <option value="20">20km</option>
+      </select>
+    </div>
+    <div id="locStatus" style="display:none" class="loc-status" style="margin-bottom:10px"></div>
+
     <div class="fbar">
       <div class="sw"><span class="si">🔍</span><input type="text" id="sq" placeholder="식당 이름, 메모 검색..." oninput="render()"></div>
     </div>
@@ -362,6 +402,8 @@ const CE={korean:'🍚',chinese:'🥟',japanese:'🍱',western:'🍝',cafe:'☕'
 const CL={korean:'한식',chinese:'중식',japanese:'일식',western:'양식',cafe:'카페',etc:'기타'};
 
 let mode='viewer', rests=[], filt='all', photos=[], selCatVal='korean';
+let uLat=null, uLng=null, refLat=null, refLng=null; // 현재위치/기준위치
+let gpsOn=false;
 
 // ── 로딩바 ─────────────────────────────────────────
 function showLoading(on){
@@ -427,17 +469,36 @@ function isOpen(h){
 }
 function render(){
   const q=document.getElementById('sq').value.toLowerCase();
+  const radius=parseFloat(document.getElementById('radiusSel').value)||0;
+  const baseLat=refLat||uLat, baseLng=refLng||uLng;
+
   let list=rests.filter(x=>{
     if(q&&!x.name.toLowerCase().includes(q)&&!(x.memo||'').toLowerCase().includes(q))return false;
     if(filt!=='all'&&filt!=='open'&&x.category!==filt)return false;
     if(filt==='open'&&!isOpen(x.hours))return false;
+    // 반경 필터
+    if(radius>0&&baseLat!=null&&x.lat&&x.lng){
+      if(hav(baseLat,baseLng,parseFloat(x.lat),parseFloat(x.lng))>radius)return false;
+    }
     return true;
   });
-  document.getElementById('rinfo').innerHTML=`총 <b>${list.length}</b>곳`;
+
+  // 기준위치 있으면 거리순 정렬
+  if(baseLat!=null){
+    list.sort((a,b)=>{
+      const da=a.lat&&a.lng?hav(baseLat,baseLng,parseFloat(a.lat),parseFloat(a.lng)):9999;
+      const db=b.lat&&b.lng?hav(baseLat,baseLng,parseFloat(b.lat),parseFloat(b.lng)):9999;
+      return da-db;
+    });
+  }
+
+  document.getElementById('rinfo').innerHTML=`총 <b>${list.length}</b>곳${baseLat?` · 기준위치에서 거리순`:''}`;
   const g=document.getElementById('grid');
-  if(!list.length){g.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:16px">🍽️</div><h3 style="color:var(--ts)">등록된 맛집이 없어요</h3><p style="font-size:13px;color:var(--tm);margin-top:8px">+ 등록 버튼으로 첫 맛집을 추가해보세요</p></div>`;return;}
+  if(!list.length){g.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:16px">🍽️</div><h3 style="color:var(--ts)">맛집이 없어요</h3><p style="font-size:13px;color:var(--tm);margin-top:8px">${radius>0?`반경 ${radius}km 내에 등록된 맛집이 없어요`:'+ 등록 버튼으로 첫 맛집을 추가해보세요'}</p></div>`;return;}
   g.innerHTML=list.map(x=>{
     const op=isOpen(x.hours);
+    const dist=baseLat&&x.lat&&x.lng?hav(baseLat,baseLng,parseFloat(x.lat),parseFloat(x.lng)):null;
+    const distStr=dist!=null?(dist<1?`${Math.round(dist*1000)}m`:dist<10?`${dist.toFixed(1)}km`:`${Math.round(dist)}km`):'';
     return `<div class="card" onclick="openD('${x.id}')">
       <div class="cimg">${x.photos&&x.photos.length?`<img src="${x.photos[0]}">`:`<span>${CE[x.category]||'🍽️'}</span>`}${x.photos&&x.photos.length>1?`<div class="icnt">📷${x.photos.length}</div>`:''}</div>
       <div class="cbody">
@@ -445,6 +506,7 @@ function render(){
         <div class="cname">${x.name}</div>
         <div class="caddr">📍 ${x.address}${x.addrDetail?' '+x.addrDetail:''}</div>
         ${x.memo?`<div class="cmemo">${x.memo}</div>`:''}
+        ${distStr?`<div class="cdist">📍 ${distStr}</div>`:''}
       </div></div>`;
   }).join('');
 }
@@ -710,7 +772,9 @@ async function submitEdit(){
   if(!addr){toast('주소를 입력해주세요','err');return;}
   const hours=getHours();
   const sbtn=document.querySelector('.sbtn');
-  sbtn.disabled=true; sbtn.textContent='수정 중...';
+  sbtn.disabled=true; sbtn.textContent='좌표 변환 중...';
+  const coords=await geocodeAddr(addr);
+  sbtn.textContent='수정 중...';
   showLoading(true);
   try{
     const body={
@@ -719,7 +783,9 @@ async function submitEdit(){
       phone:document.getElementById('rPhone').value.trim(),
       ...hours,
       photos:JSON.stringify(photos),
-      memo:document.getElementById('rMemo').value.trim()
+      memo:document.getElementById('rMemo').value.trim(),
+      lat:coords?coords.lat:'',
+      lng:coords?coords.lng:''
     };
     const res=await fetch(API, {method:'POST',body:new URLSearchParams(body)});
     const data=await res.json();
@@ -731,7 +797,8 @@ async function submitEdit(){
         addrDetail:document.getElementById('rAddrDetail').value.trim(),
         phone:document.getElementById('rPhone').value.trim(),
         hours,photos:[...photos],
-        memo:document.getElementById('rMemo').value.trim()};
+        memo:document.getElementById('rMemo').value.trim(),
+        lat:coords?coords.lat:rests[idx].lat, lng:coords?coords.lng:rests[idx].lng};
     }
     editingId=null;
     closeM('rov'); render();
@@ -769,7 +836,9 @@ async function submitReg(){
   if(!addr){toast('주소를 입력해주세요','err');return;}
   const hours=getHours();
   const sbtn=document.querySelector('.sbtn');
-  sbtn.disabled=true; sbtn.textContent='등록 중...';
+  sbtn.disabled=true; sbtn.textContent='좌표 변환 중...';
+  const coords=await geocodeAddr(addr);
+  sbtn.textContent='등록 중...';
   showLoading(true);
   try{
     const body={
@@ -778,7 +847,9 @@ async function submitReg(){
       phone:document.getElementById('rPhone').value.trim(),
       ...hours,
       photos:JSON.stringify(photos),
-      memo:document.getElementById('rMemo').value.trim()
+      memo:document.getElementById('rMemo').value.trim(),
+      lat:coords?coords.lat:'',
+      lng:coords?coords.lng:''
     };
     const res=await fetch(API, {method:'POST',body:new URLSearchParams(body)});
     const data=await res.json();
@@ -788,7 +859,8 @@ async function submitReg(){
       addrDetail:document.getElementById('rAddrDetail').value.trim(),
       phone:document.getElementById('rPhone').value.trim(),
       hours,photos:[...photos],
-      memo:document.getElementById('rMemo').value.trim()});
+      memo:document.getElementById('rMemo').value.trim(),
+      lat:coords?coords.lat:null, lng:coords?coords.lng:null});
     closeM('rov'); render();
     toast(`"${name}" 등록 완료!`,'ok');
   }catch(e){
@@ -797,6 +869,78 @@ async function submitReg(){
     sbtn.disabled=false; sbtn.textContent='등록하기 ✓';
     showLoading(false);
   }
+}
+
+// ── 위치 기능 ─────────────────────────────────────
+function hav(la1,lo1,la2,lo2){
+  const R=6371,rad=d=>d*Math.PI/180;
+  const a=Math.sin(rad(la2-la1)/2)**2+Math.cos(rad(la1))*Math.cos(rad(la2))*Math.sin(rad(lo2-lo1)/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function toggleGPS(){
+  if(gpsOn){
+    // GPS 끄기
+    gpsOn=false; uLat=null; uLng=null;
+    if(refLat===uLat)refLat=null,refLng=null;
+    document.getElementById('gpsBtn').classList.remove('active');
+    document.getElementById('gpsBtn').textContent='🛰️ 내 위치';
+    updateLocStatus();
+    render(); return;
+  }
+  if(!navigator.geolocation){toast('GPS 미지원 기기예요','err');return;}
+  document.getElementById('gpsBtn').textContent='⏳ 위치 확인 중...';
+  navigator.geolocation.getCurrentPosition(pos=>{
+    uLat=pos.coords.latitude; uLng=pos.coords.longitude;
+    refLat=uLat; refLng=uLng; gpsOn=true;
+    document.getElementById('gpsBtn').classList.add('active');
+    document.getElementById('gpsBtn').textContent='🛰️ 내 위치 ON';
+    // 주소 검색창 초기화
+    document.getElementById('locSearchInput').value='';
+    updateLocStatus(`📍 현재 위치 기준`,'gps');
+    render(); toast('현재 위치 설정 완료!','ok');
+  }, ()=>{
+    document.getElementById('gpsBtn').textContent='🛰️ 내 위치';
+    toast('위치 권한이 필요해요','err');
+  });
+}
+
+function searchLocation(){
+  const q=document.getElementById('locSearchInput').value.trim();
+  if(!q){refLat=uLat;refLng=uLng;updateLocStatus(gpsOn?'📍 현재 위치 기준':'');render();return;}
+  const geocoder=new kakao.maps.services.Geocoder();
+  geocoder.addressSearch(q,(result,status)=>{
+    if(status===kakao.maps.services.Status.OK){
+      refLat=parseFloat(result[0].y);
+      refLng=parseFloat(result[0].x);
+      updateLocStatus(`🔍 "${result[0].address_name}" 기준`,'active');
+      render(); toast(`"${result[0].address_name}" 기준으로 표시`,'ok');
+    } else {
+      toast('주소를 찾을 수 없어요. 더 구체적으로 입력해보세요','err');
+    }
+  });
+}
+
+function updateLocStatus(msg='',type=''){
+  const el=document.getElementById('locStatus');
+  if(!msg){el.style.display='none';return;}
+  el.style.display='flex'; el.textContent=msg;
+  el.className='loc-status'+(type?' '+type:'');
+}
+
+// 주소 → 좌표 변환 (등록/수정 시)
+function geocodeAddr(addr){
+  return new Promise(res=>{
+    if(!addr){res(null);return;}
+    try{
+      const geocoder=new kakao.maps.services.Geocoder();
+      geocoder.addressSearch(addr,(result,status)=>{
+        if(status===kakao.maps.services.Status.OK){
+          res({lat:parseFloat(result[0].y), lng:parseFloat(result[0].x)});
+        } else { res(null); }
+      });
+    }catch(e){res(null);}
+  });
 }
 
 // ── UTILS ─────────────────────────────────────────
