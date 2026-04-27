@@ -562,16 +562,28 @@ function applyToSel(){
   if(selDays.size===0){toast('요일을 먼저 선택해주세요','err');return;}
   const o=document.getElementById('htPanelOpen').value;
   const c=document.getElementById('htPanelClose').value;
+  const cnt=selDays.size;
   selDays.forEach(i=>{ htData[DK[i]]={open:o,close:c,off:false}; });
+  clearDaySel();
   renderSummary();
-  toast(`${selDays.size}개 요일 적용 완료`,'ok');
+  toast(`${cnt}개 요일 적용 완료`,'ok');
 }
 
 function applyOffToSel(){
   if(selDays.size===0){toast('요일을 먼저 선택해주세요','err');return;}
+  const cnt=selDays.size;
   selDays.forEach(i=>{ htData[DK[i]].off=true; });
+  clearDaySel();
   renderSummary();
-  toast(`${selDays.size}개 요일 휴무 설정`,'ok');
+  toast(`${cnt}개 요일 휴무 설정`,'ok');
+}
+
+function clearDaySel(){
+  selDays=new Set();
+  DAYS.forEach((_,i)=>{
+    const btn=document.getElementById(`htdb_${i}`);
+    if(btn)btn.classList.remove('sel');
+  });
 }
 
 function togSumOff(k){
@@ -680,8 +692,10 @@ function openEdit(id){
     });
   }
 
-  // 사진
-  photos=[...(x.photos||[])]; renderPrev();
+  // 사진 — string으로 올 경우 파싱
+  let rawPhotos = x.photos||[];
+  if(typeof rawPhotos === 'string'){try{rawPhotos=JSON.parse(rawPhotos);}catch(e){rawPhotos=[];}}
+  photos=[...rawPhotos]; renderPrev();
 
   // 타이틀과 버튼 텍스트 변경
   document.querySelector('#rov .mhdr h2').textContent='맛집 수정';
